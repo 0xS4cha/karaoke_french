@@ -4,19 +4,49 @@
     "$className": "DataModel",
 
     "ReplicatedStorage": {
+      "UI": {
+        "$path": "src/ReplicatedStorage/UI"
+      },
+      "Assets": {
+        "$path": "src/ReplicatedStorage/Assets"
+      },
+      "Packages": {
+        "$path": "src/ReplicatedStorage/Packages"
+      },
       "Shared": {
-        "$path": "src/ReplicatedStorage"
+        "$className": "Folder",
+        "Classes": {
+          "$path": "src/ReplicatedStorage/Shared/Classes"
+        },
+        "Services": {
+          "$path": "src/ReplicatedStorage/Shared/Services"
+        },
+        "Modules": {
+          "$className": "Folder",
+          "Core": {
+            "$path": "src/ReplicatedStorage/Shared/Modules/Core"
+          },
+          "Game": {
+            "$path": "src/ReplicatedStorage/Shared/Modules/Game"
+          },
+          "Platform": {
+            "$path": "src/ReplicatedStorage/Shared/Modules/Platform"
+          }
+        }
       }
     },
 
     "ServerScriptService": {
+      "$className": "ServerScriptService",
       "Server": {
         "$path": "src/ServerScriptService"
       }
     },
 
     "StarterPlayer": {
+      "$className": "StarterPlayer",
       "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
         "Client": {
           "$path": "src/StarterPlayerScripts"
         }
@@ -24,6 +54,7 @@
     },
 
     "Workspace": {
+      "$className": "Workspace",
       "$properties": {
         "FilteringEnabled": true
       },
@@ -50,7 +81,9 @@
         }
       }
     },
+
     "Lighting": {
+      "$className": "Lighting",
       "$properties": {
         "Ambient": [
           0,
@@ -63,7 +96,9 @@
         "Technology": "Voxel"
       }
     },
+
     "SoundService": {
+      "$className": "SoundService",
       "$properties": {
         "RespectFilteringEnabled": true
       }

@@ -1,1 +1,4 @@
-print("Hello world, from client! From Rojo")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UI = require(ReplicatedStorage.UI)
+
+UI()
