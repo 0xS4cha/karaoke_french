@@ -4,13 +4,14 @@ local UserInputService = game:GetService("UserInputService")
 local ContentProvider = game:GetService("ContentProvider")
 
 local LocalPlayer = Players.LocalPlayer
+local assets = game.Workspace:GetDescendants()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Features = PlayerGui:WaitForChild("LoadingScreen")
 local Container = Features:WaitForChild("Container")
 
 -- Récup des éléments
 local loadbar = Container:WaitForChild("loadbar")
-local fullBar = loadbar:WaitForChild("Full")
+local full = loadbar:WaitForChild("Full")
 local gameLogo = Container:WaitForChild("gameLogo")
 local headphoneLogo = Container:WaitForChild("headphoneLogo")
 local sxLogo = Container:WaitForChild("sxLogo")
@@ -19,19 +20,14 @@ local presskeyText = Container:WaitForChild("presskeyText")
 
 -- Tout rendre visible mais transparent
 Container.Visible = true
-loadbar.Visible = true
-sxLogo.Visible = true
-headphoneLogo.Visible = true
-headphoneText.Visible = true
-gameLogo.Visible = true
-presskeyText.Visible = true
+
 
 sxLogo.ImageTransparency = 1
 headphoneLogo.ImageTransparency = 1
 headphoneText.TextTransparency = 1
 gameLogo.ImageTransparency = 1
 presskeyText.TextTransparency = 1
-fullBar.Size = UDim2.new(0,0,1,0)
+
 
 local LoadingScreen = {}
 
@@ -42,53 +38,59 @@ local function tweenTransparency(obj, property, target, time)
     tween.Completed:Wait()
 end
 
--- Fonction pour charger les assets et mettre à jour la barre
-local function preloadAssetsWithBar(assetList, bar)
-    local total = #assetList
-    if total == 0 then return end
+-- Fonction principale
+local function loadAssets(assets)
+    local total = #assets
     local loaded = 0
 
-    -- Fonction pour mettre à jour la barre
-    local function updateBar()
-        local progress = loaded / total
-        bar.Size = UDim2.new(progress,0,1,0)
-    end
-
-    -- Préchargement
-    for _, asset in ipairs(assetList) do
+    full.Size = UDim2.new(0,0,1,0)
+    for _, asset in ipairs(assets) do
+        -- Précharger l'asset
         ContentProvider:PreloadAsync({asset})
-        loaded = loaded + 1
-        updateBar()
+
+        -- Incrémenter la progression
+        loaded += 1
+        local progress = loaded / total
+        full.Size = UDim2.new(progress, 0, 1, 0)
     end
 end
 
 function LoadingScreen:init()
     -- 1. SX Logo
+    sxLogo.Visible = true
     tweenTransparency(sxLogo, "ImageTransparency", 0, 0.5) -- fade in
     task.wait(2)
     tweenTransparency(sxLogo, "ImageTransparency", 1, 0.5) -- fade out
+    sxLogo.Visible = false
 
     -- 2. Headphone logo + text
+    headphoneLogo.Visible = true
+    headphoneText.Visible = true
+
     tweenTransparency(headphoneLogo, "ImageTransparency", 0, 0.5)
     tweenTransparency(headphoneText, "TextTransparency", 0, 0.5)
     task.wait(2)
     tweenTransparency(headphoneLogo, "ImageTransparency", 1, 0.5)
     tweenTransparency(headphoneText, "TextTransparency", 1, 0.5)
+    headphoneLogo.Visible = false
+    headphoneText.Visible = false
 
     -- 3. Game logo + loadbar
+    gameLogo.Visible = true
     tweenTransparency(gameLogo, "ImageTransparency", 0, 0.5)
 
     -- Liste des assets à précharger (mettre tes assets ici)
     local assetsToLoad = {
-        -- game:GetService("ReplicatedStorage").Assets.Asset1,
-        -- game:GetService("ReplicatedStorage").Assets.Asset2,
-        -- Ajouter tous les assets nécessaires
+        --game:GetService("ReplicatedStorage").Assets.Asset1,
+
     }
 
     -- Préchargement avec progression barre
-    preloadAssetsWithBar(assetsToLoad, fullBar)
-
+    loadbar.Visible = true
+    loadAssets(assets)
+    loadAssets(assetsToLoad)
     -- 4. Press any key
+    presskeyText.Visible = true
     tweenTransparency(presskeyText, "TextTransparency", 0, 0.5)
 
     -- Attente input joueur
