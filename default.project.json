@@ -7,9 +7,6 @@
       "UI": {
         "$path": "src/ReplicatedStorage/UI"
       },
-      "Assets": {
-        "$path": "src/ReplicatedStorage/Assets"
-      },
       "Packages": {
         "$path": "src/ReplicatedStorage/Packages"
       },
