@@ -11,7 +11,6 @@ local Features = PlayerGui:WaitForChild("LoadingScreen")
 local Mainmenu = require(ReplicatedStorage.UI.Interfaces.Mainmenu)
 local Container = Features:WaitForChild("Container")
 
--- Récup des éléments
 local loadbar = Container:WaitForChild("loadbar")
 local full = loadbar:WaitForChild("Full")
 local gameLogo = Container:WaitForChild("gameLogo")
@@ -21,7 +20,6 @@ local skipButton = Container:WaitForChild("skipButton")
 local headphoneText = Container:WaitForChild("headphoneText")
 local presskeyText = Container:WaitForChild("presskeyText")
 
--- Tout rendre visible mais transparent
 Container.Visible = true
 sxLogo.ImageTransparency = 1
 headphoneLogo.ImageTransparency = 1
@@ -31,14 +29,12 @@ presskeyText.TextTransparency = 1
 
 local LoadingScreen = {}
 
--- Fonction utilitaire pour fade
 local function tweenTransparency(obj, property, target, time)
     local tween = TweenService:Create(obj, TweenInfo.new(time), {[property] = target})
     tween:Play()
     tween.Completed:Wait()
 end
 
--- Fonction pour précharger les assets
 local function loadAssets(assets)
     local total = #assets
     local loaded = 0
@@ -53,62 +49,63 @@ local function loadAssets(assets)
 end
 
 function LoadingScreen:init()
-    -- 1. SX Logo
-    sxLogo.Visible = true
-    tweenTransparency(sxLogo, "ImageTransparency", 0, 0.5)
-    task.wait(2)
-    tweenTransparency(sxLogo, "ImageTransparency", 1, 0.5)
-    sxLogo.Visible = false
+    task.spawn(function()
+        sxLogo.Visible = true
+        tweenTransparency(sxLogo, "ImageTransparency", 0, 0.5)
+        task.wait(2)
+        tweenTransparency(sxLogo, "ImageTransparency", 1, 0.5)
+        sxLogo.Visible = false
 
-    -- 2. Headphone logo + text
-    headphoneLogo.Visible = true
-    headphoneText.Visible = true
-    tweenTransparency(headphoneLogo, "ImageTransparency", 0, 0.5)
-    tweenTransparency(headphoneText, "TextTransparency", 0, 0.5)
-    task.wait(2)
-    tweenTransparency(headphoneLogo, "ImageTransparency", 1, 0.5)
-    tweenTransparency(headphoneText, "TextTransparency", 1, 0.5)
-    headphoneLogo.Visible = false
-    headphoneText.Visible = false
+        headphoneLogo.Visible = true
+        headphoneText.Visible = true
+        tweenTransparency(headphoneLogo, "ImageTransparency", 0, 0.5)
+        tweenTransparency(headphoneText, "TextTransparency", 0, 0.5)
+        task.wait(2)
+        tweenTransparency(headphoneLogo, "ImageTransparency", 1, 0.5)
+        tweenTransparency(headphoneText, "TextTransparency", 1, 0.5)
+        headphoneLogo.Visible = false
+        headphoneText.Visible = false
 
-    -- 3. Game logo + loadbar
-    gameLogo.Visible = true
-    tweenTransparency(gameLogo, "ImageTransparency", 0, 0.5)
+        gameLogo.Visible = true
+        tweenTransparency(gameLogo, "ImageTransparency", 0, 0.5)
 
-    -- Préchargement des assets
-    local assetsToLoad = {
-        -- ReplicatedStorage.Assets.Asset1, etc.
-    }
+        local assetsToLoad = {
+            -- ReplicatedStorage.Assets.Asset1, etc.
+        }
 
-    loadbar.Visible = true
-    skipButton.Visible = true
+        loadbar.Visible = true
 
-    local skipConnection
-    skipConnection = skipButton.MouseButton1Click:Connect(function()
-        if skipConnection then
-            skipConnection:Disconnect()
-            skipConnection = nil
+        while not Mainmenu:isReady() do
+            task.wait()
         end
-        Mainmenu:showWithFadeIn()
-        LoadingScreen:destroy()
-    end)
 
-    loadAssets(assets)
-    loadAssets(assetsToLoad)
+        skipButton.Visible = true
 
-    -- 4. Press any key
-    presskeyText.Visible = true
-    skipButton.Visible = false
-    tweenTransparency(presskeyText, "TextTransparency", 0, 0.5)
-
-    -- Attente input joueur
-    local connection
-    connection = UserInputService.InputBegan:Connect(function(input, processed)
-        if not processed then
-            connection:Disconnect()
+        local skipConnection
+        skipConnection = skipButton.MouseButton1Click:Connect(function()
+            if skipConnection then
+                skipConnection:Disconnect()
+                skipConnection = nil
+            end
             Mainmenu:showWithFadeIn()
             LoadingScreen:destroy()
-        end
+        end)
+
+        loadAssets(assets)
+        loadAssets(assetsToLoad)
+
+        presskeyText.Visible = true
+        skipButton.Visible = false
+        tweenTransparency(presskeyText, "TextTransparency", 0, 0.5)
+
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input, processed)
+            if not processed then
+                connection:Disconnect()
+                Mainmenu:showWithFadeIn()
+                LoadingScreen:destroy()
+            end
+        end)
     end)
 end
 

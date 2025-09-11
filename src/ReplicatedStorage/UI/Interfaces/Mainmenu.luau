@@ -2,23 +2,45 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService('RunService')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local SocialService = game:GetService('SocialService')
 
 local LocalPlayer = Players.LocalPlayer
 local photo = game.Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
-local StarterGui = game:GetService("StarterGui")
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Features = PlayerGui:WaitForChild("Main_menu")
 local Menu = Features:WaitForChild("Background")
+local CreditMenu = Features:WaitForChild('Credit')
 local Profile = Menu:WaitForChild("Profile")
+local Content = Profile:WaitForChild('Content')
 local Camera = workspace.CurrentCamera
 local cameraConnection
 
 local Mainmenu = {}
+local Creditmenu = {}
+
+Mainmenu.ready = false
+
+local buttons = {
+    { dict = Menu.Container.storeButton, action = function() end},
+    { dict = Menu.Container.creditButton, action = function() Mainmenu:openSubmenu(Creditmenu) end},
+    { dict = Menu.Container.playButton},
+    { dict = Menu.Container.bottomGrid.inviteButton, action = function() SocialService:PromptGameInvite(LocalPlayer) end},
+    { dict = Menu.Container.bottomGrid.serverButton},
+}
 
 function Mainmenu:init()
     StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
     Profile.ImageLabel.Image = photo
+    Content.displayName.Text = LocalPlayer.DisplayName
+    Content.Username.Text = '@' .. LocalPlayer.Name
     self:initButton()
+    Creditmenu:init()
+    Mainmenu.ready = true
+end
+
+function Mainmenu:isReady()
+    return Mainmenu.ready
 end
 
 function Mainmenu:setupRigInCamFolder()
@@ -111,14 +133,12 @@ function Mainmenu:setupMenuCam()
             end
         end
 
-        -- Mouvement fluide de la caméra
         if moving then
             CamPart.CFrame = CamPart.CFrame:Lerp(CFrame.new(targetPosition), 0.1)
         else
             CamPart.CFrame = CamPart.CFrame:Lerp(CFrame.new(targetPosition), 0.2)
         end
 
-        -- Caméra orientée vers introPart avec smooth Lerp
         local desiredCFrame = CFrame.lookAt(CamPart.Position, targetPart.Position)
         Camera.CFrame = Camera.CFrame:Lerp(desiredCFrame, 0.2)
 
@@ -144,36 +164,89 @@ Mainmenu.toggleVisibility = function(bool)
     Menu.Visible = bool
 end
 
-function Mainmenu:initButton()
-    local buttons = {
-        Menu.Container.storeButton,
-        Menu.Container.creditButton,
-        Menu.Container.playButton,
-        Menu.Container.bottomGrid.inviteButton,
-        Menu.Container.bottomGrid.serverButton,
-    }
-    
+function Mainmenu:initButton()    
     for _, button in ipairs(buttons) do
-        button.selectZone.AutoButtonColor = false
-        local originalSize = button.Size
+        button.dict.selectZone.AutoButtonColor = false
+        local originalSize = button.dict.Size
 
+        button.dict.selectZone.MouseButton1Click:Connect(function()
+            if button.action then
+                button.action()
+            end
+        end)
 
-        button.selectZone.MouseEnter:Connect(function()
+        button.dict.selectZone.MouseEnter:Connect(function()
             TweenService:Create(
-                button,
+                button.dict,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                 {Size = originalSize + UDim2.new(0, 10, 0, 10)}
             ):Play()
         end)
     
-        button.selectZone.MouseLeave:Connect(function()
+        button.dict.selectZone.MouseLeave:Connect(function()
             TweenService:Create(
-                button,
+                button.dict,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                 {Size = originalSize}
             ):Play()
         end)
     end
+end
+
+function Mainmenu:openSubmenu(submenu)
+    submenu:toggleView(true)
+end
+------------------------------
+---       CREDITMENU       ---
+------------------------------
+
+local creditList = {
+    {
+        categoryLabel = 'Equipe de dévelopement',
+        memberList = {
+            { displayName = 'Sacha_dev', userName = 'kx_syrone', job = 'Createur & Dev'}
+        }
+    },
+    {
+        categoryLabel = 'Autre',
+        memberList = {
+            { displayName = 'capwonbang', userName = 'capwonbang', job = 'Support mental'}
+        }
+    }
+}
+
+function Creditmenu:init()
+
+    local ScrollingFrame = CreditMenu:WaitForChild('ScrollingFrame')
+    local playerExample = ScrollingFrame:WaitForChild('playerExample')
+    local separatorExample = ScrollingFrame:WaitForChild('separatorExample')
+
+    for i = 1, #creditList do
+        local data = creditList[i]
+        local newSeparator = separatorExample:Clone()
+		newSeparator.Name = i .. '_separator'
+		newSeparator.TextLabel.Text = data.categoryLabel
+		newSeparator.Visible = true
+		newSeparator.Parent = ScrollingFrame
+
+        for v = 1, #data.memberList do
+            local member = data.memberList[v]
+            local newMember = playerExample:Clone()
+            newMember.Name = v .. i .. '_member'
+            newMember.job.Text = member.job
+            newMember.username.Text = '@' .. member.userName
+            newMember.displayname.Text = member.displayName
+            newMember.Visible = true
+            newMember.Parent = ScrollingFrame
+        end
+    end
+end
+
+function Creditmenu:toggleView(bool)
+    if not bool then
+        bool = not Creditmenu.Visible
+    end
+    CreditMenu.Visible = bool
 end
 
 return Mainmenu
